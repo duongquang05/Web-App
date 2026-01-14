@@ -1,0 +1,359 @@
+/* Map Container */
+.map-container {
+  margin-top: 20px;
+}
+
+/* Map Background */
+.map-background {
+  position: relative;
+  width: 100%;
+  max-width: 1000px;
+  height: 400px;
+  margin: 0 auto;
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  border-radius: 12px;
+  padding: 0;
+  margin-bottom: 30px;
+  overflow: hidden;
+  border: 3px solid var(--primary-green);
+  box-shadow: 0 4px 12px rgba(46, 125, 50, 0.2);
+}
+
+/* Map Image */
+.map-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+/* Route Line (SVG fallback) */
+.route-line {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  transform: translateY(-50%);
+  width: 100%;
+  height: 100px;
+  z-index: 1;
+  display: none; /* Hidden by default, shown if image not found */
+}
+
+/* Start/Finish Markers - Removed */
+
+/* Map Points */
+.map-point {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  z-index: 5;
+  display: none; /* Will be shown by jQuery */
+}
+
+.point-marker {
+  width: 40px;
+  height: 40px;
+  background: var(--white);
+  border: 3px solid var(--primary-green);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+.point-marker:hover,
+.point-marker.pulse {
+  transform: scale(1.2);
+  box-shadow: 0 4px 12px rgba(46, 125, 50, 0.5);
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1.2);
+  }
+  50% {
+    transform: scale(1.3);
+  }
+}
+
+.point-number {
+  color: var(--primary-green-dark);
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.point-tooltip {
+  position: absolute;
+  bottom: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--primary-green-dark);
+  color: var(--white);
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  white-space: nowrap;
+  display: none;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  z-index: 20;
+}
+
+.point-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--primary-green-dark);
+}
+
+.map-point.clicked .point-marker {
+  transform: scale(0.9);
+}
+
+/* Legend */
+.map-legend {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  margin-bottom: 30px;
+  padding: 16px;
+  background: var(--lighter-green);
+  border-radius: 8px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--primary-green-dark);
+  font-weight: 500;
+}
+
+.legend-marker {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--primary-green);
+}
+
+.legend-marker.point {
+  background: var(--white);
+}
+
+/* Points List */
+.points-list {
+  margin-top: 30px;
+}
+
+.points-list h4 {
+  color: var(--primary-green-dark);
+  margin-bottom: 20px;
+  font-size: 20px;
+}
+
+.points-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.point-card {
+  background: var(--white);
+  border: 2px solid var(--light-green);
+  border-radius: 8px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.point-card:hover {
+  border-color: var(--primary-green);
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(46, 125, 50, 0.2);
+}
+
+.point-card-number {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--primary-green);
+  margin-bottom: 8px;
+}
+
+.point-card-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--primary-green-dark);
+  margin-bottom: 4px;
+}
+
+.point-card-location {
+  font-size: 12px;
+  color: var(--text-light);
+}
+
+/* Modal (reuse from CourseGallery) */
+.map-modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  overflow: auto;
+  animation: fadeIn 0.3s;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal-content {
+  background-color: var(--white);
+  margin: 5% auto;
+  padding: 0;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 900px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  animation: slideDown 0.3s;
+  overflow: hidden;
+  position: relative;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-close {
+  position: absolute;
+  top: 15px;
+  right: 25px;
+  color: var(--white);
+  font-size: 35px;
+  font-weight: bold;
+  cursor: pointer;
+  z-index: 1001;
+  background: rgba(0, 0, 0, 0.5);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.modal-close:hover {
+  background: rgba(0, 0, 0, 0.8);
+  transform: rotate(90deg);
+}
+
+.modal-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-image-section {
+  width: 100%;
+  height: 400px;
+  overflow: hidden;
+  background: var(--lighter-green);
+}
+
+.modal-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.modal-info-section {
+  padding: 30px;
+}
+
+.modal-info-section h2 {
+  color: var(--primary-green-dark);
+  margin: 0 0 20px 0;
+  font-size: 28px;
+}
+
+.info-row {
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.info-row strong {
+  color: var(--primary-green-dark);
+  font-size: 16px;
+}
+
+.info-row span,
+.info-row p {
+  color: var(--text-dark);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.info-row.description p {
+  margin: 0;
+  padding: 12px;
+  background: var(--lighter-green);
+  border-radius: 8px;
+  border-left: 4px solid var(--primary-green);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .map-background {
+    height: 300px;
+    max-width: 100%;
+  }
+
+  .point-marker {
+    width: 32px;
+    height: 32px;
+  }
+
+  .point-number {
+    font-size: 14px;
+  }
+
+  .points-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-content {
+    width: 95%;
+    margin: 10% auto;
+  }
+
+  .modal-image-section {
+    height: 250px;
+  }
+}
+
