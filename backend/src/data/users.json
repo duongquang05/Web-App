@@ -1,3 +1,30 @@
 {
-  "users": []
+  "users": [
+    {
+      "UserID": 1,
+      "FullName": "Admin Demo",
+      "Email": "admin@example.com",
+      "PasswordHash": "$2b$10$3eft2DZGOg//qg/MFPkKQ.OLyR7SmAjBDCl.69OrISa4S9WAYekV6",
+      "CurrentAddress": null,
+      "Nationality": "ADMIN",
+      "Sex": null,
+      "BirthYear": null,
+      "PassportNo": null,
+      "Mobile": null,
+      "BestRecord": null
+    },
+    {
+      "UserID": 2,
+      "FullName": "User Demo",
+      "Email": "user@example.com",
+      "PasswordHash": "$2b$10$3nYCE0zSDyO1fNkK.yehP.Gp2Nkdas7lgGPa2KOw4tevU94sYl8N2",
+      "CurrentAddress": null,
+      "Nationality": "PARTICIPANT",
+      "Sex": null,
+      "BirthYear": null,
+      "PassportNo": null,
+      "Mobile": null,
+      "BestRecord": null
+    }
+  ]
 }
