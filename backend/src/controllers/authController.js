@@ -1,40 +1,43 @@
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const userRepository = require('../repositories/userRepository');
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const useJsonStore = (process.env.USER_STORE || "db").toLowerCase() === "json";
+const userRepository = useJsonStore
+  ? require("../repositories/userJsonRepository")
+  : require("../repositories/userRepository");
 
-const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_key';
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
+const JWT_SECRET = process.env.JWT_SECRET || "dev_secret_key";
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "7d";
 
 function generateToken(user) {
   return jwt.sign(
     {
       userId: user.UserID,
       email: user.Email,
-      role: user.Nationality || 'PARTICIPANT',
+      role: user.Nationality || "PARTICIPANT",
     },
     JWT_SECRET,
-    { expiresIn: JWT_EXPIRES_IN }
+    { expiresIn: JWT_EXPIRES_IN },
   );
 }
 
 async function register(req, res, next) {
   try {
-    const { 
-      fullName, 
-      email, 
-      password, 
-      nationality, 
-      sex, 
-      birthYear, 
-      passportNo, 
-      mobile, 
-      currentAddress 
+    const {
+      fullName,
+      email,
+      password,
+      nationality,
+      sex,
+      birthYear,
+      passportNo,
+      mobile,
+      currentAddress,
     } = req.body;
 
     if (!fullName || !email || !password) {
       return res.status(400).json({
         success: false,
-        message: 'fullName, email, password are required',
+        message: "fullName, email, password are required",
       });
     }
 
@@ -43,16 +46,17 @@ async function register(req, res, next) {
     if (existingEmail) {
       return res.status(409).json({
         success: false,
-        message: 'Email already registered',
+        message: "Email already registered",
       });
     }
 
     if (passportNo) {
-      const existingPassport = await userRepository.findByPassportNo(passportNo);
+      const existingPassport =
+        await userRepository.findByPassportNo(passportNo);
       if (existingPassport) {
         return res.status(409).json({
           success: false,
-          message: 'Passport number already registered',
+          message: "Passport number already registered",
         });
       }
     }
@@ -62,7 +66,7 @@ async function register(req, res, next) {
       if (existingMobile) {
         return res.status(409).json({
           success: false,
-          message: 'Mobile number already registered',
+          message: "Mobile number already registered",
         });
       }
     }
@@ -90,37 +94,44 @@ async function register(req, res, next) {
           id: user.UserID,
           fullName: user.FullName,
           email: user.Email,
-          role: user.Nationality === 'ADMIN' ? 'ADMIN' : 'PARTICIPANT',
+          role: user.Nationality === "ADMIN" ? "ADMIN" : "PARTICIPANT",
         },
       },
     });
   } catch (err) {
     // Handle unique constraint violations with friendly messages
-    if (err.code === 'EREQUEST' && err.message) {
-      if (err.message.includes('UNIQUE KEY') || err.message.includes('duplicate key')) {
+    if (err.code === "EREQUEST" && err.message) {
+      if (
+        err.message.includes("UNIQUE KEY") ||
+        err.message.includes("duplicate key")
+      ) {
         // Try to identify which field caused the duplicate
-        if (err.message.includes('PassportNo') || err.message.includes('passport')) {
+        if (
+          err.message.includes("PassportNo") ||
+          err.message.includes("passport")
+        ) {
           return res.status(409).json({
             success: false,
-            message: 'Passport number already registered',
+            message: "Passport number already registered",
           });
         }
-        if (err.message.includes('Mobile') || err.message.includes('mobile')) {
+        if (err.message.includes("Mobile") || err.message.includes("mobile")) {
           return res.status(409).json({
             success: false,
-            message: 'Mobile number already registered',
+            message: "Mobile number already registered",
           });
         }
-        if (err.message.includes('Email') || err.message.includes('email')) {
+        if (err.message.includes("Email") || err.message.includes("email")) {
           return res.status(409).json({
             success: false,
-            message: 'Email already registered',
+            message: "Email already registered",
           });
         }
         // Generic duplicate key error
         return res.status(409).json({
           success: false,
-          message: 'This information is already registered. Please check your email, passport number, or mobile number.',
+          message:
+            "This information is already registered. Please check your email, passport number, or mobile number.",
         });
       }
     }
@@ -135,7 +146,7 @@ async function login(req, res, next) {
     if (!email || !password) {
       return res.status(400).json({
         success: false,
-        message: 'email and password are required',
+        message: "email and password are required",
       });
     }
 
@@ -145,7 +156,7 @@ async function login(req, res, next) {
     if (!user || !passwordHash) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid credentials',
+        message: "Invalid credentials",
       });
     }
 
@@ -153,7 +164,7 @@ async function login(req, res, next) {
     if (!match) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid credentials',
+        message: "Invalid credentials",
       });
     }
 
@@ -167,7 +178,7 @@ async function login(req, res, next) {
           id: user.UserID,
           fullName: user.FullName,
           email: user.Email,
-          role: user.Nationality === 'ADMIN' ? 'ADMIN' : 'PARTICIPANT',
+          role: user.Nationality === "ADMIN" ? "ADMIN" : "PARTICIPANT",
         },
       },
     });
@@ -180,14 +191,3 @@ module.exports = {
   register,
   login,
 };
-
-
-
-
-
-
-
-
-
-
-
