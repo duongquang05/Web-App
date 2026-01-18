@@ -12,7 +12,37 @@ const app = express();
 /* =====================
    MIDDLEWARE
 ===================== */
-app.use(cors());
+const parseCorsOrigins = (value) => {
+  if (!value) return [];
+  return value
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+};
+
+const corsOrigins = parseCorsOrigins(process.env.CORS_ORIGINS);
+// Back-compat + simplicity: if no allowlist is configured, allow all.
+// Set CORS_ORIGINS (comma-separated) to enforce an allowlist in production.
+const allowAllCors =
+  process.env.CORS_ALLOW_ALL === "true" ||
+  corsOrigins.length === 0 ||
+  !process.env.NODE_ENV ||
+  process.env.NODE_ENV === "development";
+
+const corsOptions = {
+  origin(origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowAllCors) return callback(null, true);
+    if (corsOrigins.includes(origin)) return callback(null, true);
+    return callback(null, false);
+  },
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: false,
+};
+
+app.use(cors(corsOptions));
+app.options(/.*/, cors(corsOptions));
 app.use(express.json());
 
 /* =====================
@@ -26,6 +56,11 @@ app.get("/", (req, res) => {
 
 // Health check
 app.get("/health", (req, res) => {
+  res.json({ status: "ok" });
+});
+
+// Health check behind /api proxy (nginx/ALB commonly routes only /api/* to backend)
+app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
