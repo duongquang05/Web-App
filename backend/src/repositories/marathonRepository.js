@@ -1,101 +1,83 @@
-const { getPool, sql } = require('../config/db');
+const path = require("path");
+const { readJson, writeJson, nextId } = require("./jsonStore");
+
+const storePath =
+  process.env.MARATHON_JSON_PATH ||
+  path.join(__dirname, "..", "data", "marathons.json");
+
+async function readStore() {
+  return readJson(storePath, { marathons: [] });
+}
+
+async function writeStore(data) {
+  await writeJson(storePath, data);
+}
 
 async function getAllMarathons(includeCancelled = false) {
-  const pool = await getPool();
-  let query = 'SELECT MarathonID, RaceName, RaceDate, Status FROM dbo.Marathons';
-  
-  // For participants, only show Active marathons
-  // For admin, show all if includeCancelled is true
-  if (!includeCancelled) {
-    query += " WHERE Status = 'Active'";
-  }
-  
-  query += ' ORDER BY RaceDate';
-  
-  const result = await pool.request().query(query);
-  return result.recordset;
+  const store = await readStore();
+  const list = includeCancelled
+    ? store.marathons
+    : store.marathons.filter((m) => m.Status === "Active");
+  return [...list].sort((a, b) => new Date(a.RaceDate) - new Date(b.RaceDate));
 }
 
 async function cancelMarathon(id) {
-  // Mark marathon as cancelled instead of deleting
-  // This preserves all historical data (participations, entry numbers, results)
-  const pool = await getPool();
-  const request = pool.request();
-  request.input('MarathonID', sql.Int, id);
-  request.input('Status', sql.NVarChar, 'Cancelled');
-  
-  const query = `
-    UPDATE dbo.Marathons
-    SET Status = @Status
-    WHERE MarathonID = @MarathonID;
-
-    SELECT MarathonID, RaceName, RaceDate, Status FROM dbo.Marathons WHERE MarathonID = @MarathonID;
-  `;
-  
-  const result = await request.query(query);
-  return result.recordset[0];
+  const store = await readStore();
+  const idx = store.marathons.findIndex(
+    (m) => Number(m.MarathonID) === Number(id),
+  );
+  if (idx === -1) return null;
+  store.marathons[idx] = { ...store.marathons[idx], Status: "Cancelled" };
+  await writeStore(store);
+  return store.marathons[idx];
 }
 
 async function getMarathonById(id) {
-  const pool = await getPool();
-  const result = await pool
-    .request()
-    .input('MarathonID', sql.Int, id)
-    .query('SELECT MarathonID, RaceName, RaceDate, Status FROM dbo.Marathons WHERE MarathonID = @MarathonID');
-  return result.recordset[0] || null;
+  const store = await readStore();
+  return (
+    store.marathons.find((m) => Number(m.MarathonID) === Number(id)) || null
+  );
 }
 
 async function createMarathon({ raceName, raceDate }) {
-  const pool = await getPool();
-  const request = pool.request();
-  request.input('RaceName', sql.NVarChar, raceName);
-  request.input('RaceDate', sql.Date, raceDate);
-  request.input('Status', sql.NVarChar, 'Active'); // Default status
-  const query = `
-    INSERT INTO dbo.Marathons (RaceName, RaceDate, Status)
-    OUTPUT INSERTED.MarathonID, INSERTED.RaceName, INSERTED.RaceDate, INSERTED.Status
-    VALUES (@RaceName, @RaceDate, @Status)
-  `;
-  const result = await request.query(query);
-  return result.recordset[0];
+  const store = await readStore();
+  const marathon = {
+    MarathonID: nextId(store.marathons, "MarathonID"),
+    RaceName: raceName,
+    RaceDate: raceDate,
+    Status: "Active",
+  };
+  store.marathons.push(marathon);
+  await writeStore(store);
+  return marathon;
 }
 
 async function updateMarathon(id, { raceName, raceDate, status }) {
-  const pool = await getPool();
-  const request = pool.request();
-  request.input('MarathonID', sql.Int, id);
-  if (raceName !== undefined) {
-    request.input('RaceName', sql.NVarChar, raceName);
-  }
-  if (raceDate !== undefined) {
-    request.input('RaceDate', sql.Date, raceDate);
-  }
-  if (status !== undefined) {
-    request.input('Status', sql.NVarChar, status);
-  }
-
-  const sets = [];
-  if (raceName !== undefined) sets.push('RaceName = @RaceName');
-  if (raceDate !== undefined) sets.push('RaceDate = @RaceDate');
-  if (status !== undefined) sets.push('Status = @Status');
-  if (!sets.length) return getMarathonById(id);
-
-  const query = `
-    UPDATE dbo.Marathons
-    SET ${sets.join(', ')}
-    WHERE MarathonID = @MarathonID;
-
-    SELECT MarathonID, RaceName, RaceDate, Status FROM dbo.Marathons WHERE MarathonID = @MarathonID;
-  `;
-  const result = await request.query(query);
-  return result.recordset[0];
+  const store = await readStore();
+  const idx = store.marathons.findIndex(
+    (m) => Number(m.MarathonID) === Number(id),
+  );
+  if (idx === -1) return null;
+  const current = store.marathons[idx];
+  const next = {
+    ...current,
+    RaceName: raceName !== undefined ? raceName : current.RaceName,
+    RaceDate: raceDate !== undefined ? raceDate : current.RaceDate,
+    Status: status !== undefined ? status : current.Status,
+  };
+  store.marathons[idx] = next;
+  await writeStore(store);
+  return next;
 }
 
 async function deleteMarathon(id) {
-  const pool = await getPool();
-  const request = pool.request();
-  request.input('MarathonID', sql.Int, id);
-  await request.query('DELETE FROM dbo.Marathons WHERE MarathonID = @MarathonID');
+  const store = await readStore();
+  const before = store.marathons.length;
+  store.marathons = store.marathons.filter(
+    (m) => Number(m.MarathonID) !== Number(id),
+  );
+  await writeStore(store);
+  return before !== store.marathons.length;
 }
 
 module.exports = {
@@ -106,14 +88,3 @@ module.exports = {
   deleteMarathon,
   cancelMarathon,
 };
-
-
-
-
-
-
-
-
-
-
-
