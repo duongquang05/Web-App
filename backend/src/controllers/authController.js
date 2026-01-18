@@ -1,11 +1,7 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-// Default to JSON store for demo unless USER_STORE=db is explicitly set
-const useJsonStore =
-  (process.env.USER_STORE || "json").toLowerCase() === "json";
-const userRepository = useJsonStore
-  ? require("../repositories/userJsonRepository")
-  : require("../repositories/userRepository");
+// JSON-only: database mode has been removed.
+const userRepository = require("../repositories/userRepository");
 
 const JWT_SECRET = process.env.JWT_SECRET || "dev_secret_key";
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "7d";
