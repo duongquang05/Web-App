@@ -25,6 +25,19 @@
       "PassportNo": null,
       "Mobile": null,
       "BestRecord": null
+    },
+    {
+      "UserID": 3,
+      "FullName": "Dương Văn Quang",
+      "Email": "quymosinhhoc12@gmail.com",
+      "PasswordHash": "$2b$10$YJ32VUhSGtGI16lqKwWReeetuXYG9v8rslEH8IyjO25DV/bPhuG6u",
+      "CurrentAddress": "Nam Tu Liem\n",
+      "Nationality": "campuchia",
+      "Sex": null,
+      "BirthYear": "2005",
+      "PassportNo": "123456",
+      "Mobile": "0936679972",
+      "BestRecord": null
     }
   ]
 }

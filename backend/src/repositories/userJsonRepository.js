@@ -5,6 +5,9 @@ const storePath =
   process.env.USER_JSON_PATH ||
   path.join(__dirname, "..", "data", "users.json");
 
+// Log once for debugging deployments to ensure the store file is where we expect
+console.log("[userJsonRepository] storePath=", storePath);
+
 async function readStore() {
   try {
     const raw = await fs.readFile(storePath, "utf8");
