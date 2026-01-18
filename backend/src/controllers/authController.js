@@ -1,6 +1,8 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const useJsonStore = (process.env.USER_STORE || "db").toLowerCase() === "json";
+// Default to JSON store for demo unless USER_STORE=db is explicitly set
+const useJsonStore =
+  (process.env.USER_STORE || "json").toLowerCase() === "json";
 const userRepository = useJsonStore
   ? require("../repositories/userJsonRepository")
   : require("../repositories/userRepository");
