@@ -6,7 +6,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
 
   // Dev proxy target (local backend). Production builds will use VITE_API_URL in code.
-  const devApiTarget = env.VITE_DEV_API_TARGET || "http://localhost:4000";
+  const devApiTarget = env.VITE_DEV_API_TARGET || "http://127.0.0.1:4000";
 
   return {
     plugins: [react()],
